@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fit check — living room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e9eef1; --plan:#fff; --ink:#15242f; --ink-soft:#5a6d7a;
+    --rule:#c2d0d9; --grid:#dde6ec; --grid-strong:#c6d5df;
+    --alert:#a8342a; --ok:#2f6a4f; --warn:#8a6413; --radius:3px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+  .wrap{max-width:880px;margin:0 auto;padding:16px 14px 56px}
+  header{margin-bottom:12px}
+  h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0}
+  header p{margin:2px 0 0;color:var(--ink-soft);font-size:13.5px}
+  .sheet{background:var(--plan);border:1px solid var(--rule);border-radius:var(--radius);padding:8px;box-shadow:0 1px 0 rgba(21,36,47,.06)}
+  svg.plan{display:block;width:100%;height:auto;max-height:62vh;touch-action:none;user-select:none}
+  .scalebar{display:flex;justify-content:space-between;gap:10px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;color:var(--ink-soft);padding:6px 4px 2px;border-top:1px solid var(--grid);margin-top:6px}
+  .status{margin:12px 0 4px;font-size:14px}
+  .status ul{margin:6px 0 0;padding-left:18px}
+  .status li{margin:2px 0}
+  .bad{color:var(--alert)} .warn{color:var(--warn)} .good{color:var(--ok)}
+  details{border-top:1px solid var(--rule);padding:10px 0 4px}
+  summary{cursor:pointer;font-weight:600;font-size:14.5px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";font-family:"IBM Plex Mono",monospace;color:var(--ink-soft)}
+  details[open] summary::after{content:"–"}
+  details .body{padding-top:10px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}
+  label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:3px}
+  input,select,button{font-family:inherit;font-size:14px;color:var(--ink)}
+  input[type=number],input[type=text],select{background:#fff;border:1px solid var(--rule);border-radius:var(--radius);padding:7px 8px;width:100%;min-width:0}
+  input[type=number]{font-family:"IBM Plex Mono",monospace}
+  .f{flex:1 1 86px} .f-wide{flex:2 1 170px}
+  button{background:var(--ink);color:#fff;border:1px solid var(--ink);border-radius:var(--radius);padding:8px 12px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+  button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #2f6f8f;outline-offset:1px}
+  .sel{margin-top:12px;border:1px solid var(--rule);border-radius:var(--radius);background:#fff;padding:10px}
+  .sel h2{margin:0 0 8px;font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .swatch{width:12px;height:12px;border-radius:2px;display:inline-block}
+  .mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-soft)}
+  .empty{color:var(--ink-soft);font-size:13.5px;margin:10px 0}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+  .chip{background:transparent;color:var(--ink);border:1px solid var(--rule);border-radius:999px;padding:5px 10px;font-size:12.5px;cursor:pointer}
+  .chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .hint{font-size:12.5px;color:var(--ink-soft);margin:6px 0 0}
+  .list div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dotted var(--grid);font-size:13.5px}
+  .list button{padding:2px 8px;font-size:12px}
+  .walltest{padding:4px 0;border-bottom:1px dotted var(--grid);display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px}
+  .err{background:#fdeceb;border:1px solid #e8bcb7;color:var(--alert);padding:8px;border-radius:var(--radius);font-family:"IBM Plex Mono",monospace;font-size:12px;white-space:pre-wrap;margin-top:8px;display:none}
+  fieldset{border:1px solid var(--grid);border-radius:var(--radius);padding:8px;margin:8px 0 0}
+  legend{font-size:12px;color:var(--ink-soft);padding:0 4px}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Fit check — living room</h1>
+    <p>Plan is drawn to scale and always fills the width, so changing a wall length shows up in the numbers and in how big the furniture looks, not in the size of the outline.</p>
+  </header>
+
+  <div class="sheet">
+    <svg class="plan" id="plan" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="scalebar"><span id="scaleTxt">grid 500 mm</span><span id="roomTxt">—</span></div>
+  </div>
+  <div class="err" id="errBox"></div>
+
+  <div class="status" id="status"></div>
+  <div class="sel" id="selPanel"></div>
+
+  <details open>
+    <summary>Layouts to try</summary>
+    <div class="body" id="layoutBox"></div>
+  </details>
+
+  <details open>
+    <summary>Add furniture</summary>
+    <div class="body">
+      <div class="row">
+        <div class="f-wide"><label for="preset">Preset</label><select id="preset"></select></div>
+        <button id="addPreset">Add</button>
+      </div>
+      <div class="row">
+        <div class="f-wide"><label for="cName">Custom piece</label><input id="cName" type="text" placeholder="e.g. the couch"></div>
+        <div class="f"><label for="cW">Width</label><input id="cW" type="number" value="2100" step="10"></div>
+        <div class="f"><label for="cD">Depth</label><input id="cD" type="number" value="950" step="10"></div>
+        <div class="f"><label for="cH">Height</label><input id="cH" type="number" value="850" step="10"></div>
+        <button id="addCustom">Add</button>
+      </div>
+      <p class="hint">Width runs left–right before you turn it. Height is only used for the doorway check. Anything L-shaped gets its chaise controls once you select it.</p>
+      <div class="list" id="itemList"></div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Room shape</summary>
+    <div class="body">
+      <p class="hint" style="margin:0 0 10px">Four wall lengths define the room. The fifth wall, the angled one with the door, is worked out from them.</p>
+      <div class="row">
+        <div class="f"><label for="wTop">Top wall</label><input id="wTop" type="number" step="10"></div>
+        <div class="f"><label for="wRight">Right wall</label><input id="wRight" type="number" step="10"></div>
+        <div class="f"><label for="wBottom">Bottom wall</label><input id="wBottom" type="number" step="10"></div>
+        <div class="f"><label for="wLeft">Left wall</label><input id="wLeft" type="number" step="10"></div>
+      </div>
+      <div class="row"><div class="f"><label for="clr">Walkway to keep clear</label><input id="clr" type="number" step="50"></div></div>
+      <div class="mono" id="derived"></div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Fireplace, radiator and door</summary>
+    <div class="body">
+      <div class="row">
+        <div class="f"><label for="bW">Fireplace width</label><input id="bW" type="number" step="10"></div>
+        <div class="f"><label for="bD">How far it sticks out</label><input id="bD" type="number" step="10"></div>
+        <div class="f"><label for="bX">Gap to left wall</label><input id="bX" type="number" step="10"></div>
+      </div>
+      <div class="row">
+        <div class="f"><label for="rL">Radiator length</label><input id="rL" type="number" step="10"></div>
+        <div class="f"><label for="rD2">Radiator depth</label><input id="rD2" type="number" step="5"></div>
+        <div class="f"><label for="rX">Gap to left wall</label><input id="rX" type="number" step="10"></div>
+      </div>
+      <div class="row">
+        <div class="f"><label for="doorW">Door leaf width</label><input id="doorW" type="number" step="2"></div>
+        <div class="f"><label for="doorOff">Set in from right wall</label><input id="doorOff" type="number" step="10"></div>
+        <div class="f-wide"><label for="doorHinge">Hinged at</label>
+          <select id="doorHinge"><option value="start">Right-wall end</option><option value="end">Bottom-wall end</option></select></div>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Getting it in the door</summary>
+    <div class="body">
+      <div class="row">
+        <div class="f"><label for="oW">Narrowest opening, width</label><input id="oW" type="number" value="700" step="2"></div>
+        <div class="f"><label for="oH">Opening height</label><input id="oH" type="number" value="2000" step="2"></div>
+      </div>
+      <div id="accessOut" class="mono"></div>
+      <p class="hint">Chaise sofas almost always arrive as two modules, so the sections are listed separately. Check with the retailer whether yours splits before trusting the whole-piece line.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Saving</summary>
+    <div class="body">
+      <div class="row">
+        <button class="ghost" id="saveBtn">Save now</button>
+        <button class="ghost" id="loadBtn">Reload saved</button>
+        <button class="ghost" id="resetBtn">Back to measured room</button>
+      </div>
+      <p class="hint" id="saveMsg">Saves automatically as you work.</p>
+    </div>
+  </details>
+</div>
+
+<script>
+"use strict";
+const SVGNS="http://www.w3.org/2000/svg", KEY="roomfit:livingroom:v2";
+const COLORS={seat:"#35657f",table:"#8a6a3b",store:"#5c5470",bed:"#3f6b52",rug:"#b9c2c8",custom:"#35657f"};
+const PRESETS=[
+  {name:"Chaise couch 277×161",w:2770,d:1610,h:870,cat:"seat",shape:"L",bodyD:1030,chaiseW:950,chaiseSide:"left"},
+  {name:"Chaise couch, small 240×155",w:2400,d:1550,h:850,cat:"seat",shape:"L",bodyD:950,chaiseW:900,chaiseSide:"left"},
+  {name:"Corner sofa 260×220",w:2600,d:2200,h:850,cat:"seat",shape:"L",bodyD:950,chaiseW:950,chaiseSide:"left"},
+  {name:"3-seat sofa",w:2100,d:950,h:850,cat:"seat"},
+  {name:"2-seat sofa",w:1600,d:900,h:850,cat:"seat"},
+  {name:"4-seat sofa",w:2500,d:980,h:850,cat:"seat"},
+  {name:"Armchair",w:850,d:900,h:850,cat:"seat"},
+  {name:"Footstool",w:700,d:500,h:420,cat:"seat"},
+  {name:"Coffee table",w:1100,d:600,h:420,cat:"table"},
+  {name:"Side table",w:450,d:450,h:550,cat:"table"},
+  {name:"TV unit",w:1400,d:400,h:500,cat:"store"},
+  {name:"TV unit, narrow",w:1200,d:400,h:500,cat:"store"},
+  {name:"TV stand, corner 100cm",w:1000,d:450,h:510,cat:"store",shape:"corner",rot:45},
+  {name:"TV stand, corner 120cm",w:1200,d:500,h:510,cat:"store",shape:"corner",rot:45},
+  {name:"TV stand, corner 150cm",w:1500,d:550,h:550,cat:"store",shape:"corner",rot:45},
+  {name:"Bookcase",w:800,d:300,h:1800,cat:"store"},
+  {name:"Sideboard",w:1600,d:450,h:800,cat:"store"},
+  {name:"Rug 230×160",w:2300,d:1600,h:10,cat:"rug"},
+  {name:"Rug 200×140",w:2000,d:1400,h:10,cat:"rug"}
+];
+const TVUNIT={name:"TV unit",w:1200,d:400,h:500,cat:"store",rot:0,x:711.2,y:215};
+const TVCORNER={name:"TV unit (corner)",w:1200,d:500,h:510,cat:"store",shape:"corner",rot:45,x:3974.3,y:267.5};
+const LAYOUTS=[
+  {name:"A \u2014 3-seater, armchair, TV flat in the left alcove",
+   note:"Shortest viewing distance in the room. Every seat on the sofa is within about 25\u00b0 of square-on; the armchair is the compromise seat at 40\u00b0. Bookcase uses the right wall. Four seats.",
+   items:[TVUNIT,
+     {name:"3-seater",w:2100,d:950,h:850,cat:"seat",rot:180,x:1075,y:2718.6},
+     {name:"Armchair",w:850,d:900,h:850,cat:"seat",rot:180,x:2650,y:2750},
+     {name:"Coffee table",w:1100,d:600,h:420,cat:"table",rot:0,x:1075,y:1500},
+     {name:"Side table",w:450,d:450,h:550,cat:"table",rot:0,x:1950,y:1400},
+     {name:"Bookcase",w:800,d:300,h:1800,cat:"store",rot:90,x:4020,y:450}]},
+  {name:"B \u2014 Chaise couch on its own, TV flat in the left alcove",
+   note:"Your original plan. It fits, with the chaise at the door end so the seating part lines up with the screen. Fills the wall, so nothing else fits with it.",
+   items:[TVUNIT,
+     {name:"Chaise couch",w:2770,d:1610,h:870,cat:"seat",shape:"L",bodyD:1030,chaiseW:950,
+      chaiseSide:"left",rot:180,x:1400,y:2388.6},
+     {name:"Coffee table",w:1100,d:600,h:420,cat:"table",rot:0,x:850,y:1200}]},
+  {name:"C \u2014 Chaise couch and a cuddle chair, corner TV",
+   note:"The chair option you asked about, and it works. Corner stand tucked into the top-right corner at 45\u00b0 so the screen looks down the long diagonal, which frees the window wall for the couch. Couch 20\u00b0 off axis at 3.3 m, chair dead on axis at 1.9 m. Five or six seats.",
+   items:[TVCORNER,
+     {name:"Chaise couch",w:2770,d:1610,h:870,cat:"seat",shape:"L",bodyD:1030,chaiseW:950,
+      chaiseSide:"left",rot:270,x:825,y:1800},
+     {name:"Cuddle chair",w:1100,d:950,h:850,cat:"seat",rot:225,x:2450,y:1800},
+     {name:"Side table",w:450,d:450,h:550,cat:"table",rot:0,x:1400,y:1500}]},
+  {name:"D \u2014 Two 2-seaters, corner TV",
+   note:"Same corner stand. Both sofas are close to square with the screen (5\u00b0 and 19\u00b0) and there is far more free floor, with room for a proper coffee table. Four seats, but the window sofa is 3.7 m back.",
+   items:[TVCORNER,
+     {name:"2-seater (window)",w:1600,d:900,h:850,cat:"seat",rot:270,x:470,y:2050},
+     {name:"2-seater",w:1600,d:900,h:850,cat:"seat",rot:180,x:1850,y:2743.6},
+     {name:"Coffee table",w:1100,d:600,h:420,cat:"table",rot:0,x:1600,y:1400},
+     {name:"Side table",w:450,d:450,h:550,cat:"table",rot:0,x:2500,y:1400}]}
+];
+const MEASURED={
+  room:{top:4241.8,right:2844.8,bottom:3149.6,left:3403.6},
+  clearance:750,
+  breast:{w:1371.6,d:381,x:1422.4},
+  rad:{len:2700,d:110,x:350},
+  door:{w:726,off:0,hinge:"start"},
+  items:[{id:"seed",name:"Chaise couch",w:2770,d:1610,h:870,cat:"seat",
+          shape:"L",bodyD:1030,chaiseW:950,chaiseSide:"left",rot:270,x:805,y:1701.8}]
+};
+let state=JSON.parse(JSON.stringify(MEASURED));
+state.sel="seed";
+let uid=1;
+const nid=p=>p+(uid++)+Math.random().toString(36).slice(2,5);
+
+/* ---------- room polygon ---------- */
+function verts(){
+  const r=state.room;
+  const top=Math.max(500,r.top), left=Math.max(500,r.left);
+  const bottom=Math.min(Math.max(0,r.bottom),top), right=Math.min(Math.max(0,r.right),left);
+  const p=[{x:0,y:0},{x:top,y:0},{x:top,y:right},{x:bottom,y:left},{x:0,y:left}];
+  const out=[];
+  for(let i=0;i<p.length;i++){
+    const q=p[(i+1)%p.length];
+    if(Math.hypot(p[i].x-q.x,p[i].y-q.y)>1) out.push(p[i]);
+  }
+  return out.length>=3?out:p;
+}
+function wallNames(){
+  return verts().length===5?["Top (fireplace)","Right","Door wall","Bottom (radiator)","Left"]
+                           :["Top","Right","Bottom","Left"];
+}
+function walls(){
+  const v=verts(), out=[];
+  for(let i=0;i<v.length;i++){
+    const a=v[i], b=v[(i+1)%v.length], len=Math.hypot(b.x-a.x,b.y-a.y);
+    const u={x:(b.x-a.x)/len,y:(b.y-a.y)/len};
+    let n={x:-u.y,y:u.x};
+    if(!inPoly({x:(a.x+b.x)/2+n.x*20,y:(a.y+b.y)/2+n.y*20},v)) n={x:u.y,y:-u.x};
+    out.push({a,b,len,u,n,i});
+  }
+  return out;
+}
+function inPoly(p,v){
+  let inside=false;
+  for(let i=0,j=v.length-1;i<v.length;j=i++){
+    const xi=v[i].x,yi=v[i].y,xj=v[j].x,yj=v[j].y;
+    if(((yi>p.y)!==(yj>p.y))&&(p.x<(xj-xi)*(p.y-yi)/((yj-yi)||1e-9)+xi)) inside=!inside;
+  }
+  return inside;
+}
+
+/* ---------- item footprints ---------- */
+function shapeOf(it){ return it.shape||"rect"; }
+function isL(it){ return shapeOf(it)==="L"; }
+function isCorner(it){ return shapeOf(it)==="corner"; }
+function bodyDepth(it){ return Math.min(Math.max(100,it.bodyD||it.d),it.d); }
+function chaiseWidth(it){ return Math.min(Math.max(100,it.chaiseW||it.w*0.35),it.w); }
+function backCut(it){
+  const c=it.backCut||Math.min(it.d*0.65,it.w*0.3);
+  return Math.min(Math.max(50,c),Math.min(it.d-20,it.w/2-20));
+}
+function localPolys(it){
+  const W=it.w,D=it.d;
+  if(isL(it)){
+    const bD=bodyDepth(it), cW=chaiseWidth(it), cd=D-bD;
+    const out=[[[-W/2,-D/2],[W/2,-D/2],[W/2,-D/2+bD],[-W/2,-D/2+bD]]];
+    if(cd>1){
+      const cx=it.chaiseSide==="right"?W/2-cW/2:-W/2+cW/2;
+      out.push([[cx-cW/2,-D/2+bD],[cx+cW/2,-D/2+bD],[cx+cW/2,D/2],[cx-cW/2,D/2]]);
+    }
+    return out;
+  }
+  if(isCorner(it)){
+    const c=backCut(it);
+    return [[[-W/2,D/2],[W/2,D/2],[c,-D/2+c],[0,-D/2],[-c,-D/2+c]]];
+  }
+  return [[[-W/2,-D/2],[W/2,-D/2],[W/2,D/2],[-W/2,D/2]]];
+}
+function localOutline(it){
+  const W=it.w,D=it.d;
+  if(isL(it)){
+    const bD=bodyDepth(it), cW=chaiseWidth(it);
+    if(D-bD<1) return [[-W/2,-D/2],[W/2,-D/2],[W/2,D/2],[-W/2,D/2]];
+    return it.chaiseSide==="right"
+      ? [[-W/2,-D/2],[W/2,-D/2],[W/2,D/2],[W/2-cW,D/2],[W/2-cW,-D/2+bD],[-W/2,-D/2+bD]]
+      : [[-W/2,-D/2],[W/2,-D/2],[W/2,-D/2+bD],[-W/2+cW,-D/2+bD],[-W/2+cW,D/2],[-W/2,D/2]];
+  }
+  return localPolys(it)[0];
+}
+function bodyPolys(it){
+  const r=(it.rot||0)*Math.PI/180,c=Math.cos(r),s=Math.sin(r);
+  return localPolys(it).map(P=>P.map(([x,y])=>({x:it.x+x*c-y*s,y:it.y+x*s+y*c})));
+}
+function proj(P,ax){let mn=1/0,mx=-1/0;for(const p of P){const d=p.x*ax.x+p.y*ax.y;if(d<mn)mn=d;if(d>mx)mx=d;}return[mn,mx];}
+function satPoly(A,B){
+  for(const P of [A,B]){
+    for(let i=0;i<P.length;i++){
+      const a=P[i],b=P[(i+1)%P.length];
+      const vx=b.x-a.x,vy=b.y-a.y,L=Math.hypot(vx,vy)||1;
+      const ax={x:-vy/L,y:vx/L};
+      const [a1,a2]=proj(A,ax),[b1,b2]=proj(B,ax);
+      if(a2<=b1+0.5||b2<=a1+0.5) return false;
+    }
+  }
+  return true;
+}
+function hit(A,B){
+  for(const a of bodyPolys(A)) for(const b of bodyPolys(B)) if(satPoly(a,b)) return true;
+  return false;
+}
+function expandPoly(P,pad){
+  const cx=P.reduce((s,q)=>s+q.x,0)/P.length, cy=P.reduce((s,q)=>s+q.y,0)/P.length;
+  return P.map(q=>{const dx=q.x-cx,dy=q.y-cy,L=Math.hypot(dx,dy)||1;
+    return {x:q.x+dx/L*pad,y:q.y+dy/L*pad};});
+}
+function grown(it,pad){ return {polys:bodyPolys(it).map(P=>expandPoly(P,pad))}; }
+function hitGrown(g,B){
+  for(const a of g.polys) for(const b of bodyPolys(B)) if(satPoly(a,b)) return true;
+  return false;
+}
+function segHit(p1,p2,p3,p4){
+  const d=(p2.x-p1.x)*(p4.y-p3.y)-(p2.y-p1.y)*(p4.x-p3.x);
+  if(Math.abs(d)<1e-9) return false;
+  const t=((p3.x-p1.x)*(p4.y-p3.y)-(p3.y-p1.y)*(p4.x-p3.x))/d;
+  const s=((p3.x-p1.x)*(p2.y-p1.y)-(p3.y-p1.y)*(p2.x-p1.x))/d;
+  return t>0.001&&t<0.999&&s>0.001&&s<0.999;
+}
+function insideRoom(it){
+  const v=verts();
+  for(const P of bodyPolys(it)){
+    for(const p of P) if(!inPoly(p,v)) return false;
+    for(let i=0;i<P.length;i++)
+      for(let j=0;j<v.length;j++)
+        if(segHit(P[i],P[(i+1)%P.length],v[j],v[(j+1)%v.length])) return false;
+  }
+  return true;
+}
+function distPtSeg(p,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,L=dx*dx+dy*dy;
+  let t=L?((p.x-a.x)*dx+(p.y-a.y)*dy)/L:0;
+  t=Math.max(0,Math.min(1,t));
+  return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy));
+}
+function gapToWall(it,w){
+  let m=1/0;
+  for(const P of bodyPolys(it)) for(const p of P) m=Math.min(m,distPtSeg(p,w.a,w.b));
+  return m;
+}
+
+/* ---------- fixtures ---------- */
+function breastRect(){
+  const b=state.breast;
+  return (b&&b.w&&b.d)?{id:"breast",name:"Fireplace",rot:0,w:b.w,d:b.d,x:b.x+b.w/2,y:b.d/2}:null;
+}
+function radRect(){
+  const r=state.rad;
+  return (r&&r.len&&r.d)?{id:"rad",name:"Radiator",rot:0,w:r.len,d:r.d,x:r.x+r.len/2,y:state.room.left-r.d/2}:null;
+}
+function fixtures(){ return [breastRect(),radRect()].filter(Boolean); }
+function doorWall(){ const w=walls(); return w.length===5?w[2]:w[1]; }
+function doorGeom(){
+  const w=doorWall(), d=state.door;
+  const width=Math.min(d.w,w.len);
+  const off=Math.min(Math.max(0,d.off),w.len-width);
+  const s={x:w.a.x+w.u.x*off,y:w.a.y+w.u.y*off};
+  const e={x:w.a.x+w.u.x*(off+width),y:w.a.y+w.u.y*(off+width)};
+  const hinge=d.hinge==="start"?s:e, other=d.hinge==="start"?e:s;
+  return {wall:w,width,s,e,hinge,other,open:{x:hinge.x+w.n.x*width,y:hinge.y+w.n.y*width}};
+}
+function doorZone(){
+  const g=doorGeom();
+  return {id:"door",name:"Door swing",
+    rot:Math.atan2(g.other.y-g.hinge.y,g.other.x-g.hinge.x)*180/Math.PI,
+    w:g.width,d:g.width,
+    x:g.hinge.x+((g.other.x-g.hinge.x)+(g.open.x-g.hinge.x))/2,
+    y:g.hinge.y+((g.other.y-g.hinge.y)+(g.open.y-g.hinge.y))/2};
+}
+
+/* ---------- rendering ---------- */
+const svg=document.getElementById("plan");
+let U=100;
+function el(t,a,p){const n=document.createElementNS(SVGNS,t);for(const k in a)n.setAttribute(k,a[k]);if(p)p.appendChild(n);return n;}
+function txt(s,a,p){const n=el("text",a,p);n.textContent=s;return n;}
+function render(){
+  try{ draw(); document.getElementById("errBox").style.display="none"; }
+  catch(err){
+    const b=document.getElementById("errBox");
+    b.style.display="block"; b.textContent="Something went wrong drawing the plan:\n"+err.message;
+  }
+}
+function draw(){
+  const v=verts(), W=Math.max(...v.map(p=>p.x)), D=Math.max(...v.map(p=>p.y));
+  const pad=Math.max(W,D)*0.12+250;
+  U=Math.max(W,D)/34;
+  svg.setAttribute("viewBox",`${-pad} ${-pad} ${W+pad*2} ${D+pad*2}`);
+  svg.innerHTML="";
+  const dpath="M "+v.map(p=>p.x+" "+p.y).join(" L ")+" Z";
+  el("path",{d:dpath,fill:"#fff"},svg);
+  const clip=el("clipPath",{id:"roomclip"},svg); el("path",{d:dpath},clip);
+  const g=el("g",{"clip-path":"url(#roomclip)"},svg);
+  for(let x=500;x<W;x+=500) el("line",{x1:x,y1:0,x2:x,y2:D,stroke:x%1000?"var(--grid)":"var(--grid-strong)","stroke-width":1,"vector-effect":"non-scaling-stroke"},g);
+  for(let y=500;y<D;y+=500) el("line",{x1:0,y1:y,x2:W,y2:y,stroke:y%1000?"var(--grid)":"var(--grid-strong)","stroke-width":1,"vector-effect":"non-scaling-stroke"},g);
+  drawWalls(); drawFixtures();
+  const probs=computeProblems();
+  [...state.items].sort((a,b)=>(a.cat==="rug"?0:1)-(b.cat==="rug"?0:1)).forEach(it=>drawItem(it,probs));
+  drawDims(W,D);
+  const area=Math.abs(v.reduce((s,p,i)=>{const q=v[(i+1)%v.length];return s+p.x*q.y-q.x*p.y;},0))/2/1e6;
+  document.getElementById("roomTxt").textContent=`${area.toFixed(2)} m² floor`;
+  paintStatus(probs); paintSelected(); paintLists(); paintAccess(); paintDerived();
+}
+function drawWalls(){
+  const g=el("g",{},svg), dg=doorGeom();
+  for(const w of walls()){
+    let segs=[[0,w.len]];
+    if(w.i===dg.wall.i){
+      const s=Math.hypot(dg.s.x-w.a.x,dg.s.y-w.a.y);
+      segs=[[0,s],[s+dg.width,w.len]].filter(([a,b])=>b-a>1);
+    }
+    for(const [s,e] of segs)
+      el("line",{x1:w.a.x+w.u.x*s,y1:w.a.y+w.u.y*s,x2:w.a.x+w.u.x*e,y2:w.a.y+w.u.y*e,
+        stroke:"#15242f","stroke-width":6,"vector-effect":"non-scaling-stroke"},g);
+  }
+  const cross=(dg.open.x-dg.hinge.x)*(dg.other.y-dg.hinge.y)-(dg.open.y-dg.hinge.y)*(dg.other.x-dg.hinge.x);
+  el("path",{d:`M ${dg.hinge.x} ${dg.hinge.y} L ${dg.open.x} ${dg.open.y} A ${dg.width} ${dg.width} 0 0 ${cross>0?1:0} ${dg.other.x} ${dg.other.y}`,
+    fill:"none",stroke:"#8aa0ad","stroke-width":1.5,"stroke-dasharray":`${U*.3} ${U*.3}`,"vector-effect":"non-scaling-stroke"},g);
+}
+function drawFixtures(){
+  for(const f of fixtures()){
+    const gi=el("g",{transform:`translate(${f.x} ${f.y})`},svg);
+    el("rect",{x:-f.w/2,y:-f.d/2,width:f.w,height:f.d,fill:"#c9d4db",stroke:"#7a8b96","stroke-width":1.5,"vector-effect":"non-scaling-stroke"},gi);
+    txt(f.name,{x:0,y:0,"text-anchor":"middle","dominant-baseline":"central","font-size":U*.5,fill:"#4a5c68","font-family":"IBM Plex Sans, sans-serif",style:"pointer-events:none"},gi);
+  }
+}
+function drawItem(it,probs){
+  const sel=state.sel===it.id, bad=probs.byId[it.id];
+  const gi=el("g",{transform:`translate(${it.x} ${it.y}) rotate(${it.rot||0})`,"data-id":it.id,style:"cursor:grab"},svg);
+  if(sel&&state.clearance>0&&it.cat!=="rug"){
+    for(const P of localPolys(it)){
+      const e=expandPoly(P.map(q=>({x:q[0],y:q[1]})),state.clearance);
+      el("path",{d:"M "+e.map(q=>q.x+" "+q.y).join(" L ")+" Z",fill:"#e8b84b",opacity:.1,
+        stroke:"#c99b1e","stroke-dasharray":`${U*.4} ${U*.4}`,"stroke-width":1,"vector-effect":"non-scaling-stroke"},gi);
+    }
+  }
+  const path="M "+localOutline(it).map(p=>p[0]+" "+p[1]).join(" L ")+" Z";
+  el("path",{d:path,fill:COLORS[it.cat]||COLORS.custom,opacity:it.cat==="rug"?.3:.82,
+    stroke:bad?"var(--alert)":(sel?"#15242f":"rgba(21,36,47,.5)"),
+    "stroke-width":sel||bad?2.5:1,"stroke-linejoin":"round","vector-effect":"non-scaling-stroke"},gi);
+  if(it.cat==="seat"){
+    const W=it.w,D=it.d;
+    if(isL(it)){
+      const bD=Math.min(Math.max(100,it.bodyD||D),D);
+      const cW=Math.min(Math.max(100,it.chaiseW||W*.35),W);
+      const y=-D/2+bD;
+      const x1=it.chaiseSide==="right"?-W/2:-W/2+cW, x2=it.chaiseSide==="right"?W/2-cW:W/2;
+      el("line",{x1,y1:y,x2,y2:y,stroke:"#fff",opacity:.85,"stroke-width":3,"vector-effect":"non-scaling-stroke"},gi);
+      el("line",{x1:it.chaiseSide==="right"?W/2-cW:-W/2,y1:D/2,x2:it.chaiseSide==="right"?W/2:-W/2+cW,y2:D/2,
+        stroke:"#fff",opacity:.85,"stroke-width":3,"vector-effect":"non-scaling-stroke"},gi);
+    } else {
+      el("line",{x1:-W/2,y1:D/2,x2:W/2,y2:D/2,stroke:"#fff",opacity:.85,"stroke-width":3,"vector-effect":"non-scaling-stroke"},gi);
+    }
+  }
+  const ly=isL(it)?-it.d/2+bodyDepth(it)/2:(isCorner(it)?it.d*0.12:0);
+  txt(it.name,{x:0,y:ly-U*.3,"text-anchor":"middle","dominant-baseline":"central","font-size":U*.55,fill:"#fff",
+    "font-family":"IBM Plex Sans, sans-serif","font-weight":500,style:"pointer-events:none"},gi);
+  txt(`${Math.round(it.w)}×${Math.round(it.d)}`,{x:0,y:ly+U*.42,"text-anchor":"middle","dominant-baseline":"central",
+    "font-size":U*.44,fill:"#fff",opacity:.85,"font-family":"IBM Plex Mono, monospace",style:"pointer-events:none"},gi);
+}
+function drawDims(W,D){
+  const o=U*1.4;
+  const g=el("g",{stroke:"#8aa0ad","stroke-width":1,"vector-effect":"non-scaling-stroke"},svg);
+  el("line",{x1:0,y1:-o,x2:W,y2:-o},g); el("line",{x1:-o,y1:0,x2:-o,y2:D},g);
+  txt(`${Math.round(state.room.top)} mm`,{x:W/2,y:-o-U*.5,"text-anchor":"middle","font-size":U*.55,fill:"#5a6d7a","font-family":"IBM Plex Mono, monospace",stroke:"none"},svg);
+  txt(`${Math.round(state.room.left)} mm`,{x:-o-U*.5,y:D/2,"text-anchor":"middle","font-size":U*.55,fill:"#5a6d7a","font-family":"IBM Plex Mono, monospace",stroke:"none",transform:`rotate(-90 ${-o-U*.5} ${D/2})`},svg);
+}
+
+/* ---------- checks ---------- */
+function computeProblems(){
+  const byId={},errors=[],warns=[],fx=fixtures(),dz=doorZone();
+  for(const it of state.items){
+    if(!insideRoom(it)){ byId[it.id]=1; errors.push(`${it.name} goes through a wall`); }
+    for(const f of fx){
+      if(it.cat==="rug") continue;
+      if(hit(it,f)){
+        if(f.id==="breast"){ byId[it.id]=1; errors.push(`${it.name} clashes with the fireplace`); }
+        else warns.push(`${it.name} sits over the radiator`);
+      }
+    }
+    if(it.cat!=="rug"&&hit(it,dz)) warns.push(`${it.name} is in the door's swing`);
+  }
+  for(let i=0;i<state.items.length;i++)
+    for(let j=i+1;j<state.items.length;j++){
+      const A=state.items[i],B=state.items[j];
+      if(A.cat==="rug"||B.cat==="rug") continue;
+      if(hit(A,B)){ byId[A.id]=byId[B.id]=1; errors.push(`${A.name} overlaps ${B.name}`); }
+    }
+  const sel=state.items.find(i=>i.id===state.sel);
+  if(sel&&sel.cat!=="rug"&&state.clearance>0){
+    const halo=grown(sel,state.clearance);
+    for(const it of state.items){
+      if(it.id===sel.id||it.cat==="rug") continue;
+      if(hitGrown(halo,it)&&!hit(sel,it)) warns.push(`Under ${state.clearance} mm between ${sel.name} and ${it.name}`);
+    }
+    const names=wallNames();
+    walls().forEach(w=>{
+      const g=Math.round(gapToWall(sel,w));
+      if(g>2&&g<state.clearance) warns.push(`Only ${g} mm between ${sel.name} and the ${names[w.i].toLowerCase()} wall`);
+    });
+  }
+  return {byId,errors:[...new Set(errors)],warns:[...new Set(warns)]};
+}
+function paintStatus(p){
+  const n=document.getElementById("status");
+  if(!state.items.length){ n.innerHTML='<span class="empty">Nothing in the room yet.</span>'; return; }
+  let h=p.errors.length?`<span class="bad">${p.errors.length} problem${p.errors.length>1?"s":""}.</span>`
+                       :`<span class="good">Everything fits, nothing clashes.</span>`;
+  const all=[...p.errors.map(e=>["bad",e]),...p.warns.map(w=>["warn",w])];
+  if(all.length) h+="<ul>"+all.map(([c,t])=>`<li class="${c}">${t}</li>`).join("")+"</ul>";
+  n.innerHTML=h;
+}
+
+/* ---------- wall-by-wall test ---------- */
+function backedOn(it,w,side){
+  const ang=Math.atan2(w.u.y,w.u.x)*180/Math.PI;
+  const mid={x:(w.a.x+w.b.x)/2,y:(w.a.y+w.b.y)/2};
+  const t={...it,rot:((ang%360)+360)%360,x:mid.x+w.n.x*it.d/2,y:mid.y+w.n.y*it.d/2};
+  if(side) t.chaiseSide=side;
+  return t;
+}
+function whyNot(t,it){
+  if(it.w>t._len+1) return `wall is only ${Math.round(t._len)} mm long`;
+  if(!insideRoom(t)) return "the room's corners get in the way";
+  for(const f of fixtures()) if(f.id!=="rad"&&hit(t,f)) return `hits the ${f.name.toLowerCase()}`;
+  for(const o of state.items) if(o.id!==it.id&&o.cat!=="rug"&&hit(t,o)) return `hits the ${o.name.toLowerCase()}`;
+  if(hit(t,doorZone())) return "blocks the door";
+  return null;
+}
+function wallReport(it){
+  const names=wallNames();
+  return walls().map(w=>{
+    const sides=isL(it)?["left","right"]:[null];
+    let best=null;
+    for(const s of sides){
+      const t=backedOn(it,w,s); t._len=w.len;
+      const why=whyNot(t,it);
+      if(!why){ best={ok:true,place:t,side:s}; break; }
+      if(!best) best={ok:false,why,place:t,side:s};
+    }
+    const note=best.ok&&best.side?` (chaise ${best.side==="left"?"at the start":"at the end"} of the wall)`:"";
+    return {name:names[w.i],ok:best.ok,why:best.why,place:best.place,note};
+  });
+}
+
+/* ---------- panels ---------- */
+function paintSelected(){
+  const n=document.getElementById("selPanel");
+  const it=state.items.find(i=>i.id===state.sel);
+  if(!it){ n.innerHTML='<p class="empty">Tap a piece on the plan to move, turn or resize it.</p>'; return; }
+  const names=wallNames();
+  const gaps=walls().map(w=>`${names[w.i]} ${Math.round(gapToWall(it,w))}`).join(" · ");
+  const rep=it.cat==="rug"?[]:wallReport(it);
+  const L=isL(it);
+  n.innerHTML=`
+    <h2><span class="swatch" style="background:${COLORS[it.cat]||COLORS.custom}"></span>${it.name}</h2>
+    <div class="row">
+      <div class="f"><label>${L?"Overall width":"Width"}</label><input type="number" step="10" id="sW" value="${it.w}"></div>
+      <div class="f"><label>${L?"Depth over chaise":"Depth"}</label><input type="number" step="10" id="sD" value="${it.d}"></div>
+      <div class="f"><label>Height</label><input type="number" step="10" id="sH" value="${it.h}"></div>
+      <div class="f"><label>Turn (°)</label><input type="number" step="15" id="sR" value="${Math.round(it.rot||0)}"></div>
+    </div>
+    ${L?`<fieldset><legend>Chaise</legend>
+      <div class="row" style="margin-bottom:0">
+        <div class="f"><label>Depth without chaise</label><input type="number" step="10" id="sBD" value="${it.bodyD}"></div>
+        <div class="f"><label>Chaise width</label><input type="number" step="10" id="sCW" value="${it.chaiseW}"></div>
+        <div class="f-wide"><label>Chaise on</label>
+          <select id="sSide"><option value="left"${it.chaiseSide==="left"?" selected":""}>Left</option><option value="right"${it.chaiseSide==="right"?" selected":""}>Right</option></select></div>
+      </div>
+      <p class="hint">Left and right are as you look down on the plan, before you turn the piece. Use "Flip the chaise" to swap it without changing anything else.</p>
+    </fieldset>`:isCorner(it)?`<fieldset><legend>Corner unit</legend>
+      <div class="row" style="margin-bottom:0">
+        <div class="f"><label>Back cut</label><input type="number" step="10" id="sBC" value="${Math.round(backCut(it))}"></div>
+        <div class="f-wide"><label>Tuck into</label>
+          <select id="sTuck">
+            <option value="">choose a corner</option>
+            <option value="TR">Top-right corner</option>
+            <option value="TL">Top-left corner</option>
+          </select></div>
+      </div>
+      <p class="hint">Back cut is how far each rear edge runs along the wall. Picking a corner snaps it in at 45°.</p>
+    </fieldset>`:`
+    <div class="row" style="margin-top:8px">
+      <button class="ghost" id="makeL" style="flex:1 1 auto">Make this an L-shape</button>
+      <button class="ghost" id="makeC" style="flex:1 1 auto">Make this a corner unit</button>
+    </div>`}
+    <div class="chips">
+      <button class="chip" data-rot="-15">−15°</button>
+      <button class="chip" data-rot="15">+15°</button>
+      <button class="chip" data-rot="90">Turn 90°</button>
+      ${L?'<button class="chip" data-flip="1">Flip the chaise</button>':""}
+      <button class="chip" data-dupe="1">Duplicate</button>
+      <button class="chip" data-del="1" style="color:var(--alert)">Remove</button>
+    </div>
+    <div class="mono">gap to walls, mm — ${gaps}</div>
+    ${rep.length?`<div style="margin-top:8px"><div class="mono" style="margin-bottom:2px">Backed against each wall</div>${
+      rep.map((r,i)=>`<div class="walltest"><span class="${r.ok?"good":"bad"}">${r.name}: ${r.ok?"fits"+r.note:r.why}</span>${
+        r.ok?`<button class="ghost" data-place="${i}">Put it here</button>`:""}</div>`).join("")}</div>`:""}`;
+
+  n.querySelectorAll("[data-rot]").forEach(b=>b.onclick=()=>{it.rot=(((it.rot||0)+ +b.dataset.rot)%360+360)%360;commit();});
+  const flip=n.querySelector("[data-flip]");
+  if(flip) flip.onclick=()=>{it.chaiseSide=it.chaiseSide==="right"?"left":"right";commit();};
+  const mk=n.querySelector("#makeL");
+  if(mk) mk.onclick=()=>{
+    it.shape="L"; it.bodyD=Math.round(it.d*0.65); it.chaiseW=Math.round(it.w*0.35);
+    it.chaiseSide="left"; it.d=Math.round(it.d*1.6); commit();
+  };
+  const mc=n.querySelector("#makeC");
+  if(mc) mc.onclick=()=>{ it.shape="corner"; it.rot=45; tuck(it,"TR"); commit(); };
+  const tk=n.querySelector("#sTuck");
+  if(tk) tk.onchange=()=>{ if(tk.value){ tuck(it,tk.value); commit(); } };
+  n.querySelector("[data-dupe]").onclick=()=>{const c={...it,id:nid("i"),x:it.x+300,y:it.y+300};state.items.push(c);state.sel=c.id;commit();};
+  n.querySelector("[data-del]").onclick=()=>{state.items=state.items.filter(x=>x.id!==it.id);state.sel=null;commit();};
+  n.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{
+    const t=rep[+b.dataset.place].place;
+    it.rot=t.rot; it.x=t.x; it.y=t.y; if(t.chaiseSide) it.chaiseSide=t.chaiseSide; commit();
+  });
+  const bind=(sel,key,min)=>{const f=n.querySelector(sel); if(!f) return;
+    f.oninput=()=>{const v=parseFloat(f.value); if(!isFinite(v)) return;
+      it[key]=key==="rot"?((v%360)+360)%360:Math.max(min||10,v); commit();};};
+  bind("#sW","w");bind("#sD","d");bind("#sH","h");bind("#sR","rot");
+  bind("#sBD","bodyD",100);bind("#sCW","chaiseW",100);bind("#sBC","backCut",50);
+  const side=n.querySelector("#sSide");
+  if(side) side.onchange=()=>{it.chaiseSide=side.value;commit();};
+}
+function tuck(it,which){
+  const v=verts(), RW=Math.max(...v.map(p=>p.x));
+  const R2=Math.SQRT1_2, off=20+R2*Math.max(0,(it.w-it.d))/2;
+  it.rot = which==="TR" ? 45 : 315;
+  it.x = which==="TR" ? RW-off : off;
+  it.y = off;
+}
+function paintLists(){
+  const l=document.getElementById("itemList");
+  l.innerHTML=state.items.length?state.items.map(it=>
+    `<div><span>${it.name}${isL(it)?" (L)":""}</span><span class="mono">${Math.round(it.w)}×${Math.round(it.d)}×${Math.round(it.h)}</span><button class="ghost" data-sel="${it.id}">Select</button></div>`).join("")
+    :'<div style="border:0"><span class="mono">No pieces yet</span></div>';
+  l.querySelectorAll("[data-sel]").forEach(b=>b.onclick=()=>{state.sel=b.dataset.sel;commit();});
+}
+function paintDerived(){
+  const names=wallNames();
+  document.getElementById("derived").innerHTML=walls().map(x=>`${names[x.i]} ${Math.round(x.len)} mm`).join(" · ");
+}
+function paintAccess(){
+  const oW=parseFloat(document.getElementById("oW").value)||0;
+  const oH=parseFloat(document.getElementById("oH").value)||0;
+  const out=document.getElementById("accessOut");
+  const list=state.items.filter(i=>i.cat!=="rug");
+  if(!list.length){ out.textContent="Add a piece to check it against the opening."; return; }
+  const line=(label,w,d,h)=>{
+    const s=[w,d,h].sort((a,b)=>a-b);
+    const ok=s[0]<=oW&&s[1]<=oH, tight=ok&&(oW-s[0]<30);
+    const cls=!ok?"bad":tight?"warn":"good";
+    const v=!ok?"will not go through":tight?"goes through with almost nothing spare":"goes through";
+    return `<div class="${cls}" style="padding:3px 0">${label}: smallest face ${Math.round(s[0])}×${Math.round(s[1])} mm — ${v}</div>`;
+  };
+  out.innerHTML=list.map(it=>{
+    if(!isL(it)) return line(it.name,it.w,it.d,it.h);
+    const cd=it.d-it.bodyD;
+    return line(`${it.name}, in one piece`,it.w,it.d,it.h)
+         + line(`${it.name}, main section`,it.w,it.bodyD,it.h)
+         + line(`${it.name}, chaise section`,it.chaiseW,cd>0?cd:it.d,it.h);
+  }).join("");
+}
+
+/* ---------- dragging ---------- */
+let drag=null;
+function toMm(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+svg.addEventListener("pointerdown",e=>{
+  const g=e.target.closest?e.target.closest("g[data-id]"):null;
+  if(!g){state.sel=null;render();return;}
+  const it=state.items.find(i=>i.id===g.dataset.id); if(!it) return;
+  state.sel=it.id; const p=toMm(e);
+  drag={it,dx:it.x-p.x,dy:it.y-p.y};
+  try{svg.setPointerCapture(e.pointerId);}catch(_){}
+  render();
+});
+svg.addEventListener("pointermove",e=>{
+  if(!drag) return; e.preventDefault();
+  const p=toMm(e); drag.it.x=p.x+drag.dx; drag.it.y=p.y+drag.dy;
+  for(const w of walls()){
+    const g=gapToWall(drag.it,w);
+    if(g<70&&insideRoom({...drag.it,x:drag.it.x+w.n.x*g,y:drag.it.y+w.n.y*g})){
+      drag.it.x+=w.n.x*g*0.9; drag.it.y+=w.n.y*g*0.9;
+    }
+  }
+  render();
+});
+["pointerup","pointercancel"].forEach(ev=>svg.addEventListener(ev,()=>{if(drag){drag=null;commit();}}));
+document.addEventListener("keydown",e=>{
+  const it=state.items.find(i=>i.id===state.sel);
+  if(!it||/input|select|textarea/i.test(document.activeElement.tagName)) return;
+  const s=e.shiftKey?100:10;
+  const m={ArrowLeft:[-s,0],ArrowRight:[s,0],ArrowUp:[0,-s],ArrowDown:[0,s]};
+  if(m[e.key]){it.x+=m[e.key][0];it.y+=m[e.key][1];e.preventDefault();commit();}
+  if(e.key.toLowerCase()==="r"){it.rot=((it.rot||0)+90)%360;commit();}
+  if(e.key.toLowerCase()==="f"&&isL(it)){it.chaiseSide=it.chaiseSide==="right"?"left":"right";commit();}
+});
+
+/* ---------- static inputs ---------- */
+function field(id,get,set,min){
+  const n=document.getElementById(id); if(!n) return;
+  n.value=get();
+  const h=()=>{const v=parseFloat(n.value);if(!isFinite(v))return;set(min!==undefined?Math.max(min,v):v);commit();};
+  n.addEventListener("input",h); n.addEventListener("change",h);
+}
+function bindAll(){
+  field("wTop",()=>state.room.top,v=>state.room.top=v,500);
+  field("wRight",()=>state.room.right,v=>state.room.right=v,0);
+  field("wBottom",()=>state.room.bottom,v=>state.room.bottom=v,0);
+  field("wLeft",()=>state.room.left,v=>state.room.left=v,500);
+  field("clr",()=>state.clearance,v=>state.clearance=v,0);
+  field("bW",()=>state.breast.w,v=>state.breast.w=v,0);
+  field("bD",()=>state.breast.d,v=>state.breast.d=v,0);
+  field("bX",()=>state.breast.x,v=>state.breast.x=v,0);
+  field("rL",()=>state.rad.len,v=>state.rad.len=v,0);
+  field("rD2",()=>state.rad.d,v=>state.rad.d=v,0);
+  field("rX",()=>state.rad.x,v=>state.rad.x=v,0);
+  field("doorW",()=>state.door.w,v=>state.door.w=v,300);
+  field("doorOff",()=>state.door.off,v=>state.door.off=v,0);
+  const h=document.getElementById("doorHinge");
+  h.value=state.door.hinge;
+  h.addEventListener("change",()=>{state.door.hinge=h.value;commit();});
+  ["oW","oH"].forEach(id=>document.getElementById(id).addEventListener("input",paintAccess));
+}
+function syncFields(){
+  const map={wTop:state.room.top,wRight:state.room.right,wBottom:state.room.bottom,wLeft:state.room.left,
+    clr:state.clearance,bW:state.breast.w,bD:state.breast.d,bX:state.breast.x,
+    rL:state.rad.len,rD2:state.rad.d,rX:state.rad.x,doorW:state.door.w,doorOff:state.door.off};
+  for(const k in map) document.getElementById(k).value=map[k];
+  document.getElementById("doorHinge").value=state.door.hinge;
+}
+const layoutBox=document.getElementById("layoutBox");
+layoutBox.innerHTML=LAYOUTS.map((L,i)=>
+  `<div style="padding:8px 0;border-bottom:1px dotted var(--grid)">
+     <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+       <strong style="font-size:14px;font-weight:600">${L.name}</strong>
+       <button class="ghost" data-lay="${i}">Load</button>
+     </div>
+     <p class="hint" style="margin:3px 0 0">${L.note}</p>
+   </div>`).join("")
+  +`<p class="hint">Loading a layout replaces whatever is in the room. Everything stays draggable afterwards, and the corner TV can be re-angled with the Turn field.</p>`;
+function applyLayout(i){
+  state.items=LAYOUTS[i].items.map(s=>({id:nid("i"),...JSON.parse(JSON.stringify(s))}));
+  state.sel=null; commit();
+}
+layoutBox.querySelectorAll("[data-lay]").forEach(b=>b.onclick=()=>applyLayout(+b.dataset.lay));
+
+const presetSel=document.getElementById("preset");
+PRESETS.forEach((p,i)=>{const o=document.createElement("option");o.value=i;
+  o.textContent=`${p.name} — ${p.w}×${p.d}`;presetSel.appendChild(o);});
+function addFrom(spec){
+  const v=verts(), W=Math.max(...v.map(p=>p.x)), D=Math.max(...v.map(p=>p.y));
+  const it={id:nid("i"),rot:0,x:W/2,y:D/2,...spec};
+  let tries=0;
+  while(!insideRoom(it)&&tries<60){ it.x=W*.25+Math.random()*W*.5; it.y=D*.25+Math.random()*D*.5; tries++; }
+  state.items.push(it); state.sel=it.id; commit();
+}
+document.getElementById("addPreset").onclick=()=>addFrom({...PRESETS[+presetSel.value]});
+document.getElementById("addCustom").onclick=()=>addFrom({
+  name:document.getElementById("cName").value.trim()||"Custom piece",
+  w:parseFloat(document.getElementById("cW").value)||1000,
+  d:parseFloat(document.getElementById("cD").value)||500,
+  h:parseFloat(document.getElementById("cH").value)||800,cat:"custom"});
+
+/* ---------- persistence ---------- */
+let timer=null;
+function commit(){ render(); clearTimeout(timer); timer=setTimeout(save,700); }
+async function save(){
+  const m=document.getElementById("saveMsg");
+  try{ await window.storage.set(KEY,JSON.stringify(state)); m.textContent="Saved "+new Date().toLocaleTimeString(); }
+  catch(err){ m.textContent="Couldn't save — the layout still works until you close the tab."; }
+}
+async function load(){
+  try{
+    const r=await window.storage.get(KEY);
+    if(!r||!r.value) return false;
+    const v=JSON.parse(r.value);
+    if(!v||!v.room) return false;
+    state=Object.assign(JSON.parse(JSON.stringify(MEASURED)),v);
+    state.items=(state.items||[]).map(it=>({shape:"rect",rot:0,...it}));
+    return true;
+  }catch(err){ return false; }
+}
+document.getElementById("saveBtn").onclick=save;
+document.getElementById("loadBtn").onclick=async()=>{
+  const ok=await load(); syncFields(); render();
+  document.getElementById("saveMsg").textContent=ok?"Saved layout reloaded.":"Nothing saved yet.";
+};
+document.getElementById("resetBtn").onclick=()=>{
+  state=JSON.parse(JSON.stringify(MEASURED)); state.sel="seed"; syncFields(); commit();
+  document.getElementById("saveMsg").textContent="Back to the room and couch as measured.";
+};
+
+/* ---------- boot ---------- */
+(async()=>{
+  bindAll();
+  const restored=await load();
+  syncFields(); render();
+  if(restored) document.getElementById("saveMsg").textContent="Picked up where you left off.";
+})();
+</script>

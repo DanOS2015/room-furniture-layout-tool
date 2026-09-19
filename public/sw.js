@@ -39,15 +39,23 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
 
   // A navigation always lands on the shell - there is only one page.
+  //
+  // Only an OK response is allowed to win. fetch() rejects on a dead network,
+  // but a 404 or a 5xx resolves *successfully* - so if the site is ever
+  // unpublished or the host serves an error page, the naive version of this
+  // caches that error page over the shell and bricks every installed copy.
+  // Anything that isn't a 2xx falls through to the cache instead.
   if (req.mode === "navigate") {
+    const cached = () => caches.match("./index.html").then((r) => r || caches.match("./"));
     e.respondWith(
       fetch(req)
         .then((res) => {
+          if (!res.ok) return cached().then((r) => r || res);
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put("./index.html", copy));
           return res;
         })
-        .catch(() => caches.match("./index.html").then((r) => r || caches.match("./"))),
+        .catch(cached),
     );
     return;
   }
